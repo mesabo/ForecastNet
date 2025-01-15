@@ -1,13 +1,13 @@
 import sys
 from pathlib import Path
+
+# Import test cases (to be implemented in subsequent steps)
+from src.data_processing.generate_data import generate_multivariate_time_series
+from src.data_processing.prepare_data import preprocess_time_series_data
 from src.utils.argument_parser import get_arguments
 from src.utils.device_utils import setup_device
 from src.utils.logger_config import setup_logger
 from src.utils.output_config import get_output_paths
-
-# Import test cases (to be implemented in subsequent steps)
-from src.data_processing.generate_data import generate_multivariate_time_series
-# from src.training.train_transformer import train_transformer
 
 # Add the `src` directory to `PYTHONPATH`
 PROJECT_ROOT = Path(__file__).parent / "src"
@@ -16,6 +16,7 @@ sys.path.append(str(PROJECT_ROOT))
 # Map test cases to functions
 TEST_CASES = {
     "generate_data": generate_multivariate_time_series,
+    "preprocess_data": preprocess_time_series_data,
     # "train_transformer": train_transformer,
     # Add other test cases here...
 }

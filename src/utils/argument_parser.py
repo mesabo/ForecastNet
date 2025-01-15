@@ -28,7 +28,8 @@ def get_arguments():
                         default="time_series", help="Task type (e.g., time_series, classification, regression).")
 
     # Test case choices
-    parser.add_argument("--test_case", type=str, choices=["generate_data", "train_transformer", "evaluate_transformer"],
+    parser.add_argument("--test_case", type=str,
+                        choices=["generate_data", "preprocess_data", "train_transformer", "evaluate_transformer"],
                         default="generate_data", help="Test case to run.")
 
     # Dataset and paths

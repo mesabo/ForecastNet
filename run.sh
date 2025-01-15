@@ -26,7 +26,7 @@ fi
 
 # Configurations with choices
 TASKS=("time_series")
-TEST_CASES=("generate_data")  # Add more cases as needed: "train_transformer", "evaluate_transformer"
+TEST_CASES=("preprocess_data")  # Add more cases as needed: "train_transformer", "evaluate_transformer"
 DATASETS=("room_data")
 MODELS=("transformer")
 BATCH_SIZES=("16")
@@ -63,7 +63,7 @@ for TASK in "${TASKS[@]}"; do
                     --task "$TASK" \
                     --test_case "$TEST_CASE" \
                     --model "$MODEL" \
-                    --data_path "./data/processed/train.csv" \
+                    --data_path "data/raw/time_series_data.csv" \
                     --batch_size "$BATCH_SIZE" \
                     --epochs "$EPOCH" \
                     --learning_rate "$LEARNING_RATE" \
