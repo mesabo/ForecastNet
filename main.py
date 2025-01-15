@@ -1,16 +1,62 @@
-# This is a sample Python script.
+import sys
+from pathlib import Path
+from src.utils.argument_parser import get_arguments
+from src.utils.device_utils import setup_device
+from src.utils.logger_config import setup_logger
+from src.utils.output_config import get_output_paths
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+# Import test cases (to be implemented in subsequent steps)
+from src.data_processing.generate_data import generate_multivariate_time_series
+# from src.training.train_transformer import train_transformer
 
+# Add the `src` directory to `PYTHONPATH`
+PROJECT_ROOT = Path(__file__).parent / "src"
+sys.path.append(str(PROJECT_ROOT))
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+# Map test cases to functions
+TEST_CASES = {
+    "generate_data": generate_multivariate_time_series,
+    # "train_transformer": train_transformer,
+    # Add other test cases here...
+}
 
+def main():
+    # Parse arguments
+    args = get_arguments()
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+    # Setup device
+    device = setup_device(args)
+    args.device = device.type  # Add device information to args
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    # Get output paths
+    output_paths = get_output_paths(args)
+
+    # Setup logger
+    logger = setup_logger(args)
+    args.logger = logger
+
+    # Log the configuration details
+    logger.info(f"Task: {args.task}")
+    logger.info(f"Model: {args.model}")
+    logger.info(f"Device: {args.device}")
+    logger.info(f"Batch Size: {args.batch_size}")
+    logger.info(f"Epochs: {args.epochs}")
+    logger.info(f"Lookback Window: {args.lookback_window}")
+    logger.info(f"Forecast Horizon: {args.forecast_horizon}")
+    logger.info(f"Log Path: {output_paths['logs']}")
+    logger.info(f"Model Path: {output_paths['models']}")
+    logger.info(f"Results Path: {output_paths['results']}")
+    logger.info(f"Metrics Path: {output_paths['metrics']}")
+
+    # Execute the selected test case
+    if args.test_case in TEST_CASES:
+        logger.info(f"{10 * '🌟'} Running {args.test_case} {10 * '🌟'}")
+        TEST_CASES[args.test_case](args)  # Pass arguments to the function
+    else:
+        logger.error(f"Invalid test case: {args.test_case}")
+        logger.error(f"Available test cases: {list(TEST_CASES.keys())}")
+
+    logger.info(f"{10 * '🏁'} ALL EXECUTIONS DONE! {10 * '🏁'}")
+
+if __name__ == "__main__":
+    main()

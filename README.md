@@ -1,16 +1,78 @@
 
-# ForecastNet: Multivariate Time Series Forecasting using Transformers
+# ForecastNet: A Multivariate Time-Series Forecasting Framework
 
-**ForecastNet** is a modular and scalable framework for multivariate time series forecasting using Transformer models. The project is designed to be reusable, testable, and adaptable for a wide range of applications, including energy consumption prediction, climate modeling, and more.
+## Project Overview
+ForecastNet is a framework designed for multivariate time-series forecasting using Transformers. The project incorporates modularity, scalability, and reusability, enabling researchers and practitioners to efficiently train and evaluate models on various time-series datasets.
 
 ---
 
-## Project Features
+## Directory Structure
 
-- **Custom Dataset Generation**: Supports synthetic data generation for experimentation.
-- **Flexible Model Design**: Components of the Transformer architecture are separated for reusability and testing.
-- **Scalable Training**: Optimized training pipelines with support for GPU, MPS, and CPU devices.
-- **Visualization Tools**: Analyze and visualize predictions for better interpretability.
+```
+.
+├── README.md
+├── data
+│   ├── processed
+│   └── raw
+│       └── time_series_data.csv
+├── forecastnet_env.yml
+├── main.py
+├── output
+│   └── <device>
+│       └── <task>
+│           └── <model>
+│               ├── logs
+│               │   └── <event_type>
+│               │       └── batch<size>
+│               │           └── epoch<epochs>_lookback<lookback>_forecast<forecast>.log
+│               ├── metrics
+│               │   └── <event_type>
+│               │       └── batch<size>
+│               │           └── epoch<epochs>_lookback<lookback>_forecast<forecast>.csv
+│               ├── models
+│               │   └── <event_type>
+│               │       └── batch<size>
+│               │           └── epoch<epochs>_lookback<lookback>_forecast<forecast>.pth
+│               └── results
+│                   └── <event_type>
+│                       └── batch<size>
+│                           └── epoch<epochs>_lookback<lookback>_forecast<forecast>.csv
+├── run.sh
+├── src
+│   ├── data_processing
+│   │   ├── generate_data.py
+│   │   └── prepare_data.py
+│   ├── models
+│   │   ├── feed_forward.py
+│   │   ├── multi_head_attention.py
+│   │   ├── positional_encoding.py
+│   │   ├── transformer_decoder.py
+│   │   ├── transformer_encoder.py
+│   │   └── transformer_model.py
+│   ├── training
+│   │   └── __init__.py
+│   ├── utils
+│   │   ├── argument_parser.py
+│   │   ├── device_utils.py
+│   │   ├── logger_config.py
+│   │   ├── metrics.py
+│   │   ├── output_config.py
+│   │   └── training_utils.py
+│   └── visualization
+│       └── plot_predictions.py
+└── tests
+    ├── test_data_processing.py
+    ├── test_training.py
+    ├── test_transformer.py
+    └── test_visualization.py
+```
+
+---
+
+## Features
+- Modular design for Transformer-based time-series forecasting.
+- Logs, models, results, and metrics are neatly organized by device, task, and model type.
+- Built-in support for multivariate time-series data generation and processing.
 
 ---
 
@@ -18,106 +80,43 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/ForecastNet.git
-   cd ForecastNet
+   git clone https://github.com/your-repo/forecastnet.git
+   cd forecastnet
    ```
 
-2. Set up the environment using Conda:
+2. Set up the environment:
    ```bash
-   conda env create -f environment.yml
+   conda env create -f forecastnet_env.yml
    conda activate forecastnet
    ```
-
-3. Run the main script:
-   ```bash
-   python main.py --task time_series --model transformer --test_case train_transformer_seq2seq --data_path ./data/processed --save_path ./output/models --batch_size 32 --epochs 10
-   ```
-
----
-
-## Project Structure
-
-```
-.
-├── README.md                   # Project overview
-├── data
-│   ├── raw                     # Raw data files
-│   └── processed               # Preprocessed dataset files
-│       ├── train.csv
-│       ├── val.csv
-│       └── test.csv
-├── environment.yml             # Conda environment file
-├── main.py                     # Entry point to run the project
-├── output
-│   ├── logs                    # Training logs
-│   └── models                  # Saved model checkpoints
-│       └── transformer_best.pth
-├── run.sh                      # Bash script to run training
-├── tests                       # Unit and integration tests
-│   ├── __init__.py
-│   ├── test_data_processing.py
-│   ├── test_transformer.py
-│   ├── test_training.py
-│   └── test_visualization.py
-└── src
-    ├── __init__.py
-    ├── data_processing         # Dataset generation and preparation
-    │   ├── __init__.py
-    │   ├── generate_data.py
-    │   └── prepare_data.py
-    ├── models                  # Transformer components and models
-    │   ├── __init__.py
-    │   ├── transformer_encoder.py
-    │   ├── transformer_decoder.py
-    │   ├── positional_encoding.py
-    │   ├── multi_head_attention.py
-    │   ├── feed_forward.py
-    │   └── transformer_model.py
-    ├── training                # Training and validation logic
-    │   ├── __init__.py
-    │   └── train_transformer.py
-    ├── utils                   # Helper functions
-    │   ├── __init__.py
-    │   ├── argument_parser.py
-    │   ├── device_utils.py
-    │   ├── metrics.py
-    │   └── training_utils.py
-    └── visualization           # Visualization scripts
-        ├── __init__.py
-        └── plot_predictions.py
-```
 
 ---
 
 ## Usage
 
-### Generating Synthetic Data
-Generate a synthetic dataset using:
+### Running the Project
+Execute the following command to train or evaluate a Transformer model:
 ```bash
-python src/data_processing/generate_data.py
+bash run.sh
 ```
 
-### Training the Model
-Train the Transformer model with:
-```bash
-python main.py --task time_series --model transformer --test_case train_transformer_seq2seq --data_path ./data/processed --save_path ./output/models --batch_size 32 --epochs 10
-```
-
-### Visualizing Results
-Use the visualization tools to analyze predictions:
-```bash
-python src/visualization/plot_predictions.py
-```
+### Logging and Outputs
+All outputs (logs, models, metrics, results) are saved under the `output` directory:
+- Logs: `output/<device>/<task>/<model>/logs/...`
+- Models: `output/<device>/<task>/<model>/models/...`
+- Metrics: `output/<device>/<task>/<model>/metrics/...`
+- Results: `output/<device>/<task>/<model>/results/...`
 
 ---
 
 ## Contributing
-
-We welcome contributions! Please fork the repository, make your changes, and submit a pull request.
+Feel free to contribute by opening issues or submitting pull requests.
 
 ---
 
-## License
-
-This project is licensed under the MIT License.
-
+## Author
+- **Name**: Messou
+- **Email**: mesabo18@gmail.com / messouaboya17@gmail.com
+- **Github**: [https://github.com/mesabo](https://github.com/mesabo)
+- **University**: Hosei University
+- **Lab**: Prof. YU Keping's Lab
