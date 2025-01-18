@@ -36,7 +36,7 @@ class ScaledDotProductAttention(nn.Module):
         d_k = query.size(-1)
         scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)  # Scaled dot-product
         if mask is not None:
-            scores = scores.masked_fill(mask == 0, -1e9)  # Apply mask
+            scores = scores.masked_fill(0 == mask, -1e9)  # Apply mask
 
         attn_weights = torch.softmax(scores, dim=-1)
         output = torch.matmul(attn_weights, value)

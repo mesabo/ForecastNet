@@ -15,6 +15,7 @@ Lab: Prof YU Keping's Lab
 import os
 from pathlib import Path
 
+
 def get_output_paths(args):
     """
     Generate paths for logs, models, results, and metrics based on configuration.
@@ -25,19 +26,29 @@ def get_output_paths(args):
     Returns:
         dict: A dictionary containing paths for logs, models, results, and metrics.
     """
-    base_dir = Path("output/") / args.device / args.task / args.model
+    # Determine event_type for paths other than models
     event_type = args.event if hasattr(args, "event") else "training"
 
-    # Create base directories
+    base_dir = Path("output/") / args.device / args.task / args.model
+
     paths = {
         "logs": base_dir / "logs" / f"{event_type}" / f"batch{args.batch_size}" /
                 f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.log",
-        "models": base_dir / "models" / f"{event_type}" / f"batch{args.batch_size}" /
+        # Force event_type to "training" for the model path in specific cases
+        "models": base_dir / "models" / (
+            "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
+                  f"batch{args.batch_size}" /
                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.pth",
+        "params": base_dir / "models" / (
+            "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
+                  f"batch{args.batch_size}" /
+                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.json",
         "results": base_dir / "results" / f"{event_type}" / f"batch{args.batch_size}" /
                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.csv",
         "metrics": base_dir / "metrics" / f"{event_type}" / f"batch{args.batch_size}" /
                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.csv",
+        "visuals": (base_dir / "visuals" / f"{event_type}" / f"batch{args.batch_size}" /
+                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}"),
     }
 
     # Ensure directories exist

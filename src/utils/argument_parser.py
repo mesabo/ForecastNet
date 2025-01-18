@@ -12,6 +12,7 @@ Dept: Science and Engineering
 Lab: Prof YU Keping's Lab
 """
 
+# src/utils/argument_parser.py
 import argparse
 
 def get_arguments():
@@ -47,11 +48,19 @@ def get_arguments():
     parser.add_argument("--forecast_horizon", type=int, choices=[1, 7, 14, 30], default=7,
                         help="Forecast horizon.")
 
+    # Transformer-specific parameters
+    parser.add_argument("--d_model", type=int, choices=[64, 128, 256, 512], default=512, help="Model dimensionality.")
+    parser.add_argument("--n_heads", type=int, choices=[4, 8, 16], default=8, help="Number of attention heads.")
+    parser.add_argument("--d_ff", type=int, choices=[128, 256, 512, 1024], default=2048, help="Feed-forward dimensionality.")
+    parser.add_argument("--num_encoder_layers", type=int, choices=[2, 4, 6, 8], default=6, help="Number of encoder layers.")
+    parser.add_argument("--num_decoder_layers", type=int, choices=[2, 4, 6, 8], default=6, help="Number of decoder layers.")
+    parser.add_argument("--dropout", type=float, choices=[0.1, 0.2, 0.3, 0.5], default=0.1, help="Dropout probability.")
+
     # Computation device
     parser.add_argument("--device", type=str, choices=["cuda", "mps", "cpu"], default="cuda", help="Device to use.")
 
     # Event type for logging
-    parser.add_argument("--event", type=str, choices=["training", "hyperparam", "ablation"], default="training",
+    parser.add_argument("--event", type=str, choices=["training", "testing","hyperparam", "hyperparam"], default="training",
                         help="Event type for logging.")
 
     return parser.parse_args()

@@ -4,6 +4,7 @@ from pathlib import Path
 # Import test cases (to be implemented in subsequent steps)
 from src.data_processing.generate_data import generate_multivariate_time_series
 from src.data_processing.prepare_data import preprocess_time_series_data
+from src.training.train_transformer import TrainTransformer
 from src.utils.argument_parser import get_arguments
 from src.utils.device_utils import setup_device
 from src.utils.logger_config import setup_logger
@@ -17,8 +18,10 @@ sys.path.append(str(PROJECT_ROOT))
 TEST_CASES = {
     "generate_data": generate_multivariate_time_series,
     "preprocess_data": preprocess_time_series_data,
-    # "train_transformer": train_transformer,
-    # Add other test cases here...
+    "train_transformer": lambda args: TrainTransformer(args).train(),
+    "evaluate_transformer": lambda args: TrainTransformer(args).evaluate(
+        Path(args.data_path or "data/processed") / "test_sliding.csv"
+    ),
 }
 
 def main():

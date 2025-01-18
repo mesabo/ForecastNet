@@ -50,7 +50,7 @@ ForecastNet is a framework designed for multivariate time-series forecasting usi
 │   │   ├── transformer_encoder.py
 │   │   └── transformer_model.py
 │   ├── training
-│   │   └── __init__.py
+│   │   └── train_transformer.py
 │   ├── utils
 │   │   ├── argument_parser.py
 │   │   ├── device_utils.py
