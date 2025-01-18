@@ -39,14 +39,14 @@ class Metrics:
         Calculate all metrics.
         """
         return {
-            "MAE": self.mean_absolute_error(actual, predicted),
-            "MSE": self.mean_squared_error(actual, predicted),
-            "RMSE": self.root_mean_squared_error(actual, predicted),
-            "R2": self.r2_score(actual, predicted),
-            "MAPE": self.mean_absolute_percentage_error(actual, predicted),
-            "sMAPE": self.symmetric_mean_absolute_percentage_error(actual, predicted),
-            "MASE": self.mean_absolute_scaled_error(actual, predicted),
-            "WAPE": self.weighted_absolute_percentage_error(actual, predicted)
+            "MAE": float(f"{self.mean_absolute_error(actual, predicted):6f}"),
+            "MSE": float(f"{self.mean_squared_error(actual, predicted):6f}"),
+            "RMSE": float(f"{self.root_mean_squared_error(actual, predicted):6f}"),
+            "R2": float(f"{self.r2_score(actual, predicted):6f}"),
+            "MAPE": float(f"{self.mean_absolute_percentage_error(actual, predicted):6f}"),
+            "sMAPE": float(f"{self.symmetric_mean_absolute_percentage_error(actual, predicted):6f}"),
+            "MASE": float(f"{self.mean_absolute_scaled_error(actual, predicted):6f}"),
+            "WAPE": float(f"{self.weighted_absolute_percentage_error(actual, predicted):6f}")
         }
 
     def mean_absolute_error(self, actual, predicted):

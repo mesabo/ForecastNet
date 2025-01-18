@@ -38,6 +38,7 @@ def main():
     # Setup logger
     logger = setup_logger(args)
     args.logger = logger
+    args.output_paths = output_paths
 
     # Log the configuration details
     logger.info(f"Task: {args.task}")
@@ -51,6 +52,7 @@ def main():
     logger.info(f"Model Path: {output_paths['models']}")
     logger.info(f"Results Path: {output_paths['results']}")
     logger.info(f"Metrics Path: {output_paths['metrics']}")
+    logger.info(f"Visuals Path: {output_paths['visuals']}")
 
     # Execute the selected test case
     if args.test_case in TEST_CASES:

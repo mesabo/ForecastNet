@@ -26,14 +26,14 @@ fi
 
 # Configurations with choices
 TASKS=("time_series")
-TEST_CASES=("train_transformer" "evaluate_transformer") # "hyperparam_transformer" "ablation_transformer"
+TEST_CASES=("train_transformer" "evaluate_transformer") # "preprocess_data" "hyperparam_transformer" "ablation_transformer"
 DATASETS=("room_data")
 MODELS=("transformer")
 BATCH_SIZES=("16")
-LOOKBACK_WINDOWS=("10")
+LOOKBACK_WINDOWS=("30")
 FORECAST_HORIZONS=("7")
 LEARNING_RATES=("0.001")
-EPOCHS=("3")
+EPOCHS=("10")
 D_MODELS=("128")
 N_HEADS=("8")
 D_FFS=("256")

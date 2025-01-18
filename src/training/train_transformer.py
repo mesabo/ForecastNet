@@ -14,6 +14,7 @@ Lab: Prof YU Keping's Lab
 
 import json
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import torch
@@ -24,7 +25,17 @@ from torch.utils.data import DataLoader
 from src.data_processing.prepare_data import TimeSeriesDataset
 from src.models.transformer_model import TransformerModel
 from src.utils.metrics import Metrics
-from src.utils.output_config import get_output_paths
+from src.visualization.testing_visualizations import (
+    plot_multi_step_predictions,
+    plot_aggregated_steps,
+    plot_error_heatmap,
+    plot_residuals,
+)
+from src.visualization.training_visualizations import (
+    plot_loss_curve,
+    plot_metrics_trend,
+    plot_learning_rate_schedule,
+)
 
 
 class TrainTransformer:
@@ -35,7 +46,6 @@ class TrainTransformer:
     def __init__(self, args):
         self.args = args
         self.device = args.device
-        self.output_paths = get_output_paths(args)  # Automatically uses args.event for path management
         self.metrics = Metrics(seasonality=args.forecast_horizon)
 
         # Placeholder for datasets and loaders
@@ -57,9 +67,6 @@ class TrainTransformer:
         self.criterion = nn.MSELoss()
 
     def load_data(self):
-        """
-        Loads the dataset and creates data loaders.
-        """
         data_dir = Path(self.args.data_path)
         train_dataset = TimeSeriesDataset(
             data_dir / "train_sliding.csv", self.args.lookback_window, self.args.forecast_horizon
@@ -71,12 +78,9 @@ class TrainTransformer:
         self.train_loader = DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True)
         self.val_loader = DataLoader(val_dataset, batch_size=self.args.batch_size, shuffle=False)
 
-        self.input_dim = train_dataset.x.shape[2]  # Extract feature dimension from dataset
+        self.input_dim = train_dataset.x.shape[2]
 
     def init_model(self):
-        """
-        Initializes the Transformer model using the dynamically determined input dimension.
-        """
         max_len = max(self.args.lookback_window, self.args.forecast_horizon)
 
         self.model = TransformerModel(
@@ -94,9 +98,6 @@ class TrainTransformer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
 
     def save_hyperparameters(self):
-        """
-        Saves the model hyperparameters to a JSON file for evaluation.
-        """
         hyperparameters = {
             "d_model": self.args.d_model,
             "n_heads": self.args.n_heads,
@@ -108,19 +109,17 @@ class TrainTransformer:
             "output_dim": self.output_dim,
             "max_len": max(self.args.lookback_window, self.args.forecast_horizon),
         }
-        param_path = self.output_paths["params"]
+        param_path = self.args.output_paths["params"]
         with open(param_path, "w") as f:
             json.dump(hyperparameters, f)
         self.args.logger.info(f"Model hyperparameters saved to {param_path}")
 
     def train(self):
-        """
-        Runs the training loop for the Transformer model.
-        """
         self.load_data()
         self.init_model()
 
         best_val_loss = float("inf")
+        learning_rates = []
 
         for epoch in range(1, self.args.epochs + 1):
             train_loss, train_metrics = self._train_one_epoch()
@@ -132,14 +131,34 @@ class TrainTransformer:
             self.results_log["train_metrics"].append(train_metrics)
             self.results_log["val_metrics"].append(val_metrics)
 
+            # Record learning rate (for visualization)
+            for param_group in self.optimizer.param_groups:
+                learning_rates.append(param_group["lr"])
+
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                torch.save(self.model.state_dict(), self.output_paths["models"])
-                self.args.logger.info(f"Saved best model to {self.output_paths['models']}")
+                torch.save(self.model.state_dict(), self.args.output_paths["models"])
+                self.args.logger.info(f"Saved best model to {self.args.output_paths['models']}")
 
             self.args.logger.info(
                 f"Epoch [{epoch}/{self.args.epochs}] | Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, "
                 f"Train MAE: {train_metrics['MAE']:.4f}, Val MAE: {val_metrics['MAE']:.4f}"
+            )
+
+            # Generate training visualizations
+            plot_loss_curve(
+                self.results_log["train_loss"],
+                self.results_log["val_loss"],
+                self.args.output_paths["visuals"] / "loss_curve.png",
+            )
+            plot_metrics_trend(
+                self.results_log["train_metrics"],
+                self.results_log["val_metrics"],
+                metric_names=["MAE", "MSE"],
+                output_path=self.args.output_paths["visuals"] / "metrics_trend.png",
+            )
+            plot_learning_rate_schedule(
+                learning_rates, self.args.output_paths["visuals"] / "learning_rate_schedule.png"
             )
 
         self.save_hyperparameters()
@@ -187,11 +206,8 @@ class TrainTransformer:
         return val_loss, val_metrics
 
     def evaluate(self, test_path):
-        """
-        Evaluates the model on the test dataset.
-        """
-        model_path = self.output_paths["models"]
-        param_path = self.output_paths["params"]
+        model_path = self.args.output_paths["models"]
+        param_path = self.args.output_paths["params"]
 
         if not model_path.exists():
             self.args.logger.error(f"Model file not found at {model_path}. Please train the model first.")
@@ -217,7 +233,6 @@ class TrainTransformer:
         ).to(self.device)
 
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
-        self.args.logger.info(f"Model loaded from {model_path}.")
 
         test_dataset = TimeSeriesDataset(test_path, self.args.lookback_window, self.args.forecast_horizon)
         test_loader = DataLoader(test_dataset, batch_size=self.args.batch_size, shuffle=False)
@@ -237,8 +252,15 @@ class TrainTransformer:
 
         metrics = self.metrics.calculate_all(all_targets, all_preds)
         metrics_df = pd.DataFrame([metrics])
-        metrics_df.to_csv(self.output_paths["metrics"], index=False)
-        self.args.logger.info(f"Test metrics saved to {self.output_paths['metrics']}")
+        metrics_df.to_csv(self.args.output_paths["metrics"], index=False)
+
+        # Save visualization plots
+        plot_multi_step_predictions(all_targets, all_preds, self.args.output_paths["visuals"] / "predicted_vs_actual.png")
+        plot_aggregated_steps(all_targets, all_preds, self.args.output_paths["visuals"] / "aggregated_steps.png")
+        plot_error_heatmap(all_targets, all_preds, self.args.output_paths["visuals"] / "error_heatmap.png")
+        plot_residuals(all_targets, all_preds, self.args.output_paths["visuals"] / "residuals.png")
+
+        self.args.logger.info(f"Visualizations saved to {self.args.output_paths['visuals']}")
 
     def save_epoch_results(self):
         results_df = pd.DataFrame(self.results_log)
@@ -249,10 +271,10 @@ class TrainTransformer:
             train_metrics_df,
             val_metrics_df,
         ], axis=1)
-        results_df.to_csv(self.output_paths["results"], index=False)
-        self.args.logger.info(f"Epoch results saved to {self.output_paths['results']}")
+        results_df.to_csv(self.args.output_paths["results"], index=False)
+        self.args.logger.info(f"Epoch results saved to {self.args.output_paths['results']}")
 
     def save_final_metrics_summary(self):
         metrics_summary = pd.DataFrame(self.results_log["val_metrics"]).mean().to_dict()
-        pd.DataFrame([metrics_summary]).to_csv(self.output_paths["metrics"], index=False)
-        self.args.logger.info(f"Final metrics summary saved to {self.output_paths['metrics']}")
+        pd.DataFrame([metrics_summary]).to_csv(self.args.output_paths["metrics"], index=False)
+        self.args.logger.info(f"Final metrics summary saved to {self.args.output_paths['metrics']}")
