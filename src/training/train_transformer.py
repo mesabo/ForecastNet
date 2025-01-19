@@ -25,7 +25,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from src.data_processing.prepare_data import TimeSeriesDataset
-from src.models.transformer_model import TransformerModel
+from src.models.transformer.transformer_model import TransformerModel
 from src.utils.metrics import Metrics
 from src.utils.training_utils import EarlyStopping, get_optimizer
 from src.visualization.testing_visualizations import (
@@ -414,7 +414,7 @@ class TrainTransformer:
         self.args.logger.info(f"Metrics saved to {self.metric_path}")
 
         # Save visualization plots
-        qty = 0.75
+        qty = 1
         plot_multi_step_predictions(
             all_targets,
             all_preds,

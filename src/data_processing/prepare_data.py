@@ -21,13 +21,14 @@ Preprocess multivariate time-series data for training and evaluation.
 """
 
 import sys
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import traceback
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 import torch
-from torch.utils.data import Dataset
 from sklearn.preprocessing import MinMaxScaler
+from torch.utils.data import Dataset
 
 # Add the `src` directory to `PYTHONPATH`
 PROJECT_ROOT = Path(__file__).parent / "src"
@@ -36,7 +37,7 @@ sys.path.append(str(PROJECT_ROOT))
 def preprocess_time_series_data(args):
     """
     Preprocesses raw time-series data and splits it into train, validation, and test sets.
-    Generates sliding window datasets for each split.
+    Handles downsampling based on frequency and generates sliding window datasets for each split.
     """
     try:
         # Define the project root directory
@@ -44,7 +45,7 @@ def preprocess_time_series_data(args):
         raw_data_path = project_root / "data/raw/time_series_data.csv"
 
         # Ensure output directory exists
-        processed_dir = project_root / (args.data_path or "data/processed") / str(
+        processed_dir = project_root / (args.data_path or "data/processed") / (args.frequency or "daily") / str(
             f"lookback{args.lookback_window}_forecast{args.forecast_horizon}"
         )
         processed_dir.mkdir(parents=True, exist_ok=True)
@@ -60,18 +61,41 @@ def preprocess_time_series_data(args):
 
         # Load raw data
         data = pd.read_csv(raw_data_path, parse_dates=["date"])
+
+        # Map frequency to Pandas-compatible frequency codes
+        frequency_map = {
+            "minutely": "T",   # T for minutes
+            "hourly": "H",     # H for hours
+            "daily": "D",      # D for days
+            "weekly": "W",     # W for weeks
+            "monthly": "M",    # M for months
+        }
+
+        # Resample data based on frequency
+        if "frequency" in args and args.frequency:
+            freq = frequency_map.get(args.frequency.lower())
+            if not freq:
+                raise ValueError(f"Invalid frequency: {args.frequency}")
+            args.logger.info(f"Resampling data to {args.frequency} frequency.")
+            data = data.resample(freq, on="date").mean().dropna()
+
+        # Infer feature columns and normalize the data
+        feature_columns = [col for col in data.columns if col != args.target_name and col != "date"]
         scaler = MinMaxScaler()
-        feature_columns = ["room1", "room2", "room3", "room4", "conso"]
-        scaled_data = scaler.fit_transform(data[feature_columns])
-        normalized_df = pd.DataFrame(scaled_data, columns=feature_columns)
-        normalized_df["date"] = data["date"]
+        scaled_features = scaler.fit_transform(data[feature_columns])
+        target = data[args.target_name].values.reshape(-1, 1)  # Keep target separately for scaling
+        scaled_target = scaler.fit_transform(target)
+
+        # Combine scaled features and target
+        normalized_data = pd.DataFrame(scaled_features, columns=feature_columns)
+        normalized_data[args.target_name] = scaled_target
 
         # Train/validation/test split
-        train_split = int(len(normalized_df) * 0.7)
-        val_split = int(len(normalized_df) * 0.85)
-        train_data = normalized_df.iloc[:train_split]
-        val_data = normalized_df.iloc[train_split:val_split]
-        test_data = normalized_df.iloc[val_split:]
+        train_split = int(len(normalized_data) * 0.7)
+        val_split = int(len(normalized_data) * 0.85)
+        train_data = normalized_data.iloc[:train_split]
+        val_data = normalized_data.iloc[train_split:val_split]
+        test_data = normalized_data.iloc[val_split:]
 
         train_data.to_csv(processed_dir / "train.csv", index=False)
         val_data.to_csv(processed_dir / "val.csv", index=False)
@@ -80,18 +104,18 @@ def preprocess_time_series_data(args):
         args.logger.info("Preprocessing complete. Train/Val/Test splits saved.")
 
         # Generate sliding window datasets
-        create_sliding_window_data(train_data, args.lookback_window, args.forecast_horizon, train_file)
+        create_sliding_window_data(train_data, args.lookback_window, args.forecast_horizon, train_file, args.target_name)
         args.logger.info("Creating sliding window datasets for train split complete.")
-        create_sliding_window_data(val_data, args.lookback_window, args.forecast_horizon, val_file)
+        create_sliding_window_data(val_data, args.lookback_window, args.forecast_horizon, val_file, args.target_name)
         args.logger.info("Creating sliding window datasets for validation split complete.")
-        create_sliding_window_data(test_data, args.lookback_window, args.forecast_horizon, test_file)
+        create_sliding_window_data(test_data, args.lookback_window, args.forecast_horizon, test_file, args.target_name)
         args.logger.info("Creating sliding window datasets for test split complete.")
     except Exception as e:
         args.logger.error(f"Error during preprocessing: {traceback.format_exc()}")
         raise
 
 
-def create_sliding_window_data(data, lookback, forecast, output_path):
+def create_sliding_window_data(data, lookback, forecast, output_path, target_name):
     """
     Converts time-series data into sliding window format.
 
@@ -100,12 +124,13 @@ def create_sliding_window_data(data, lookback, forecast, output_path):
         lookback (int): Number of past time steps used as input.
         forecast (int): Number of future time steps to predict as output.
         output_path (str): Path to save the sliding window formatted dataset.
+        target_name (str): Name of the target column in the dataset.
 
     Returns:
         None: Saves the sliding window dataset to a CSV file.
     """
-    features = data.drop(columns=["date", "conso"]).values  # Exclude date column
-    target = data["conso"].values  # Use "conso" as the target
+    features = data.drop(columns=[target_name]).values  # Exclude target column
+    target = data[target_name].values  # Use target column
     x, y = [], []
 
     for i in range(len(features) - lookback - forecast + 1):
@@ -121,7 +146,6 @@ def create_sliding_window_data(data, lookback, forecast, output_path):
         sliding_df.to_csv(output_path, index=False)
     except Exception as e:
         raise Exception(f"Failed to save sliding window data to {output_path}. Error: {e}")
-
 
 class TimeSeriesDataset(Dataset):
     """

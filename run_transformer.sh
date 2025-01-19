@@ -26,17 +26,18 @@ fi
 
 # Configurations with choices
 TASKS=("time_series")
-TEST_CASES=("evaluate_transformer") #"preprocess_data" "train_transformer" "evaluate_transformer")
-DATASETS=("room_data")
+TEST_CASES=("preprocess_data" "train_transformer" "evaluate_transformer")
+TARGET="conso"
+FREQUENCIES=("daily")
 MODELS=("transformer")
 BATCH_SIZES=("16")
-LOOKBACK_WINDOWS=("60") # "90" "120")
-FORECAST_HORIZONS=("7") # "14" "21" "30" "60")
+LOOKBACK_WINDOWS=("60" "90" "120")
+FORECAST_HORIZONS=("7" "14" "21" "30" "60")
 LEARNING_RATES=("0.001")
 WEIGHT_DECAYS=("0.0001")
 OPTIMIZERS=("adam")
 PATIENCE=("50")
-EPOCHS=("50")
+EPOCHS=("50" "100")
 D_MODELS=("128")
 N_HEADS=("8")
 D_FFS=("256")
@@ -60,7 +61,7 @@ for TASK in "${TASKS[@]}"; do
     fi
 
     for EPOCH in "${EPOCHS[@]}"; do
-      for DATASET in "${DATASETS[@]}"; do
+      for FREQUENCY in "${FREQUENCIES[@]}"; do
         for MODEL in "${MODELS[@]}"; do
           for BATCH_SIZE in "${BATCH_SIZES[@]}"; do
             for LOOKBACK_WINDOW in "${LOOKBACK_WINDOWS[@]}"; do
@@ -81,7 +82,8 @@ for TASK in "${TASKS[@]}"; do
                                     echo "  Task: $TASK"
                                     echo "  Test Case: $TEST_CASE"
                                     echo "  Event: $EVENT"
-                                    echo "  Dataset: $DATASET"
+                                    echo "  Target: $TARGET"
+                                    echo "  Frequency: $FREQUENCY"
                                     echo "  Model: $MODEL"
                                     echo "  Batch Size: $BATCH_SIZE"
                                     echo "  Epochs: $EPOCH"
@@ -104,7 +106,9 @@ for TASK in "${TASKS[@]}"; do
                                       --task "$TASK" \
                                       --test_case "$TEST_CASE" \
                                       --model "$MODEL" \
-                                      --data_path "data/processed" \
+                                      --frequency "$FREQUENCY" \
+                                      --data_path "data/processed/$FREQUENCY" \
+                                      --target_name "$TARGET" \
                                       --batch_size "$BATCH_SIZE" \
                                       --epochs "$EPOCH" \
                                       --learning_rate "$LEARNING_RATE" \

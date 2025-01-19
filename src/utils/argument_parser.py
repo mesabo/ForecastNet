@@ -34,7 +34,15 @@ def get_arguments():
 
     # Dataset and paths
     parser.add_argument("--data_path", type=str, default="data/raw/time_series_data.csv", help="Path to dataset.")
+    parser.add_argument("--target_name", type=str, default="conso", help="Dataset target name")
     parser.add_argument("--save_path", type=str, help="Path to save models and outputs.")
+    parser.add_argument(
+        "--frequency",
+        type=str,
+        choices=["minutely", "hourly", "daily", "weekly", "monthly"],
+        default="daily",
+        help="Frequency of the time series."
+    )
 
     # Model and hyperparameters
     parser.add_argument("--model", type=str, choices=["transformer"], default="transformer", help="Model type.")
@@ -48,9 +56,9 @@ def get_arguments():
                         help="Minimum change in validation loss to qualify as an improvement for early stopping.")
     parser.add_argument("--weight_decay", type=float, choices=[0.0, 1e-5, 1e-4, 1e-3], default=0.0,
                         help="L2 regularization term (default: 0.0).")
-    parser.add_argument("--lookback_window", type=int, choices=[10, 20, 30, 60], default=30,
+    parser.add_argument("--lookback_window", type=int, choices=[10, 20, 30, 60, 90, 120], default=30,
                         help="Lookback window size.")
-    parser.add_argument("--forecast_horizon", type=int, choices=[1, 7, 14, 30], default=7,
+    parser.add_argument("--forecast_horizon", type=int, choices=[1, 7, 14, 21, 30, 60], default=7,
                         help="Forecast horizon.")
 
     # Transformer-specific parameters

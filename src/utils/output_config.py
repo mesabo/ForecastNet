@@ -32,25 +32,25 @@ def get_output_paths(args):
     base_dir = Path("output/") / args.device / args.task / args.model
 
     paths = {
-        "logs": base_dir / "logs" / f"{event_type}" / f"batch{args.batch_size}" /
+        "logs": base_dir / "logs" / f"{event_type}" / args.frequency / f"batch{args.batch_size}" /
                 f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.log",
-        "profiles": base_dir / "profiles" / f"{event_type}" / f"batch{args.batch_size}" /
+        "profiles": base_dir / "profiles" / f"{event_type}" / args.frequency / f"batch{args.batch_size}" /
                     f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
         "models": base_dir / "models" / (
             "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
-                  f"batch{args.batch_size}" /
+                  args.frequency / f"batch{args.batch_size}" /
                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
         "params": base_dir / "params" / (
             "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
-                  f"batch{args.batch_size}" /
+                  args.frequency / f"batch{args.batch_size}" /
                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
-        "results": base_dir / "results" / f"{event_type}" / f"batch{args.batch_size}" /
+        "results": base_dir / "results" / f"{event_type}" / args.frequency / f"batch{args.batch_size}" /
                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
-        "metrics": base_dir / "metrics" / f"{event_type}" / f"batch{args.batch_size}" /
+        "metrics": base_dir / "metrics" / f"{event_type}" / args.frequency / f"batch{args.batch_size}" /
                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
-        "visuals": base_dir / "visuals" / f"{event_type}" / f"batch{args.batch_size}" /
+        "visuals": base_dir / "visuals" / f"{event_type}" / args.frequency / f"batch{args.batch_size}" /
                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
-        "predictions": base_dir / "predictions" / f"{event_type}" / f"batch{args.batch_size}" /
+        "predictions": base_dir / "predictions" / f"{event_type}" / args.frequency / f"batch{args.batch_size}" /
                        f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
     }
 

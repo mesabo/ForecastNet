@@ -14,12 +14,12 @@ Lab: Prof YU Keping's Lab
 
 import torch
 
-from src.models.feed_forward import FeedForward
-from src.models.multi_head_attention import MultiHeadAttention
-from src.models.positional_encoding import PositionalEncoding
-from src.models.transformer_decoder import TransformerDecoderBlock, TransformerDecoder
-from src.models.transformer_encoder import TransformerEncoderBlock, TransformerEncoder
-from src.models.transformer_model import TransformerModel
+from src.models.transformer.feed_forward import FeedForward
+from src.models.transformer.multi_head_attention import MultiHeadAttention
+from src.models.transformer.positional_encoding import PositionalEncoding
+from src.models.transformer.transformer_decoder import TransformerDecoderBlock, TransformerDecoder
+from src.models.transformer.transformer_encoder import TransformerEncoderBlock, TransformerEncoder
+from src.models.transformer.transformer_model import TransformerModel
 
 def test_positional_encoding():
     d_model = 64

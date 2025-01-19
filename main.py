@@ -20,7 +20,7 @@ TEST_CASES = {
     "preprocess_data": preprocess_time_series_data,
     "train_transformer": lambda args: TrainTransformer(args).train(),
     "evaluate_transformer": lambda args: TrainTransformer(args).evaluate(
-        Path(args.data_path or "data/processed")
+        Path(args.data_path or "data/processed/daily")
     ),
 }
 

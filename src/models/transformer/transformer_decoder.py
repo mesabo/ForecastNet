@@ -15,9 +15,9 @@ Lab: Prof YU Keping's Lab
 import torch
 import torch.nn as nn
 
-from src.models.feed_forward import FeedForward
-from src.models.multi_head_attention import MultiHeadAttention
-from src.models.positional_encoding import PositionalEncoding
+from src.models.transformer.feed_forward import FeedForward
+from src.models.transformer.multi_head_attention import MultiHeadAttention
+from src.models.transformer.positional_encoding import PositionalEncoding
 
 
 class TransformerDecoderBlock(nn.Module):

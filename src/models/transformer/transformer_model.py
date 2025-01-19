@@ -15,9 +15,9 @@ Lab: Prof YU Keping's Lab
 import torch
 import torch.nn as nn
 
-from src.models.positional_encoding import PositionalEncoding
-from src.models.transformer_encoder import TransformerEncoder
-from src.models.transformer_decoder import TransformerDecoder
+from src.models.transformer.positional_encoding import PositionalEncoding
+from src.models.transformer.transformer_encoder import TransformerEncoder
+from src.models.transformer.transformer_decoder import TransformerDecoder
 
 class TransformerModel(nn.Module):
     """
