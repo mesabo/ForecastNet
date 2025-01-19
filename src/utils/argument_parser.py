@@ -39,7 +39,7 @@ def get_arguments():
     # Model and hyperparameters
     parser.add_argument("--model", type=str, choices=["transformer"], default="transformer", help="Model type.")
     parser.add_argument("--batch_size", type=int, choices=[16, 32, 64, 128], default=32, help="Batch size.")
-    parser.add_argument("--epochs", type=int, choices=[10, 50, 100, 200], default=10, help="Number of training epochs.")
+    parser.add_argument("--epochs", type=int, choices=[2, 10, 50, 100, 200, 500, 1000], default=10, help="Number of training epochs.")
     parser.add_argument("--optimizer", type=str, choices=["adam", "sgd"], default="adam", help="Optimizer to use.")
     parser.add_argument("--learning_rate", type=float, choices=[0.001, 0.0001, 0.00001],
                         default=0.001, help="Learning rate.")

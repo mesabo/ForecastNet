@@ -34,29 +34,34 @@ def get_output_paths(args):
     paths = {
         "logs": base_dir / "logs" / f"{event_type}" / f"batch{args.batch_size}" /
                 f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.log",
-        # Force event_type to "training" for the model path in specific cases
-        "profiles": base_dir / "profiles" / f"{event_type}" /
-                  f"batch{args.batch_size}" /
-                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.json",
-        # Force event_type to "training" for the model path in specific cases
+        "profiles": base_dir / "profiles" / f"{event_type}" / f"batch{args.batch_size}" /
+                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
         "models": base_dir / "models" / (
             "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
                   f"batch{args.batch_size}" /
-                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.pth",
-        "params": base_dir / "models" / (
+                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
+        "params": base_dir / "params" / (
             "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
                   f"batch{args.batch_size}" /
-                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.json",
+                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
         "results": base_dir / "results" / f"{event_type}" / f"batch{args.batch_size}" /
-                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.csv",
+                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
         "metrics": base_dir / "metrics" / f"{event_type}" / f"batch{args.batch_size}" /
-                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.csv",
-        "visuals": (base_dir / "visuals" / f"{event_type}" / f"batch{args.batch_size}" /
-                    f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}"),
+                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
+        "visuals": base_dir / "visuals" / f"{event_type}" / f"batch{args.batch_size}" /
+                   f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
+        "predictions": base_dir / "predictions" / f"{event_type}" / f"batch{args.batch_size}" /
+                       f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}",
     }
 
-    # Ensure directories exist
+    # Ensure all directory paths exist
     for key, path in paths.items():
-        os.makedirs(path.parent, exist_ok=True)
+        if key == "predictions":
+            # Ensure predictions path exists but avoid treating file paths as directories
+            os.makedirs(path, exist_ok=True)
+        elif path.suffix:  # If the path has a file extension
+            os.makedirs(path.parent, exist_ok=True)
+        else:
+            os.makedirs(path, exist_ok=True)
 
     return paths
