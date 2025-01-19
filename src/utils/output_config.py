@@ -35,6 +35,10 @@ def get_output_paths(args):
         "logs": base_dir / "logs" / f"{event_type}" / f"batch{args.batch_size}" /
                 f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.log",
         # Force event_type to "training" for the model path in specific cases
+        "profiles": base_dir / "profiles" / f"{event_type}" /
+                  f"batch{args.batch_size}" /
+                  f"epoch{args.epochs}_lookback{args.lookback_window}_forecast{args.forecast_horizon}.json",
+        # Force event_type to "training" for the model path in specific cases
         "models": base_dir / "models" / (
             "training" if args.test_case in ["train_transformer", "evaluate_transformer"] else event_type) /
                   f"batch{args.batch_size}" /

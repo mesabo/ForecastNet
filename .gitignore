@@ -1,1 +1,6 @@
 /data/processed/
+/output/mps/time_series/transformer/visuals/training/
+/output/mps/time_series/transformer/results/training/
+/output/mps/time_series/transformer/models/training/
+/output/mps/time_series/transformer/metrics/training/
+/output/mps/time_series/transformer/logs/

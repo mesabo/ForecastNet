@@ -18,6 +18,7 @@ dependencies:
   - pyyaml
   - pytorch=2.5.1
   - torchvision
+  - -psutil
   - pip:
       - opacus
       - pytorch-memlab

@@ -12,7 +12,6 @@ Dept: Science and Engineering
 Lab: Prof YU Keping's Lab
 """
 
-# src/utils/argument_parser.py
 import argparse
 
 def get_arguments():
@@ -40,9 +39,15 @@ def get_arguments():
     # Model and hyperparameters
     parser.add_argument("--model", type=str, choices=["transformer"], default="transformer", help="Model type.")
     parser.add_argument("--batch_size", type=int, choices=[16, 32, 64, 128], default=32, help="Batch size.")
-    parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs.")
+    parser.add_argument("--epochs", type=int, choices=[10, 50, 100, 200], default=10, help="Number of training epochs.")
+    parser.add_argument("--optimizer", type=str, choices=["adam", "sgd"], default="adam", help="Optimizer to use.")
     parser.add_argument("--learning_rate", type=float, choices=[0.001, 0.0001, 0.00001],
                         default=0.001, help="Learning rate.")
+    parser.add_argument("--patience", type=int, choices=[10, 20, 50, 100, 200], default=50, help="Patience for early stopping.")
+    parser.add_argument("--early_stop_delta", type=float, choices=[0.0, 0.01, 0.001, 0.0001], default=0.0001,
+                        help="Minimum change in validation loss to qualify as an improvement for early stopping.")
+    parser.add_argument("--weight_decay", type=float, choices=[0.0, 1e-5, 1e-4, 1e-3], default=0.0,
+                        help="L2 regularization term (default: 0.0).")
     parser.add_argument("--lookback_window", type=int, choices=[10, 20, 30, 60], default=30,
                         help="Lookback window size.")
     parser.add_argument("--forecast_horizon", type=int, choices=[1, 7, 14, 30], default=7,
@@ -60,7 +65,7 @@ def get_arguments():
     parser.add_argument("--device", type=str, choices=["cuda", "mps", "cpu"], default="cuda", help="Device to use.")
 
     # Event type for logging
-    parser.add_argument("--event", type=str, choices=["training", "testing","hyperparam", "hyperparam"], default="training",
+    parser.add_argument("--event", type=str, choices=["training", "testing", "hyperparam"], default="training",
                         help="Event type for logging.")
 
     return parser.parse_args()

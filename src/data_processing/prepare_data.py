@@ -16,6 +16,10 @@ Lab: Prof YU Keping's Lab
 Preprocess multivariate time-series data for training and evaluation.
 """
 
+"""
+Preprocess multivariate time-series data for training and evaluation.
+"""
+
 import sys
 import pandas as pd
 import numpy as np
@@ -40,9 +44,21 @@ def preprocess_time_series_data(args):
         raw_data_path = project_root / "data/raw/time_series_data.csv"
 
         # Ensure output directory exists
-        processed_dir = project_root / (args.data_path or "data/processed")
+        processed_dir = project_root / (args.data_path or "data/processed") / str(
+            f"lookback{args.lookback_window}_forecast{args.forecast_horizon}"
+        )
         processed_dir.mkdir(parents=True, exist_ok=True)
 
+        # Check if processed files already exist
+        train_file = processed_dir / "train_sliding.csv"
+        val_file = processed_dir / "val_sliding.csv"
+        test_file = processed_dir / "test_sliding.csv"
+
+        if train_file.exists() and val_file.exists() and test_file.exists():
+            args.logger.info("Processed files already exist. Skipping preprocessing.")
+            return
+
+        # Load raw data
         data = pd.read_csv(raw_data_path, parse_dates=["date"])
         scaler = MinMaxScaler()
         feature_columns = ["room1", "room2", "room3", "room4", "conso"]
@@ -50,6 +66,7 @@ def preprocess_time_series_data(args):
         normalized_df = pd.DataFrame(scaled_data, columns=feature_columns)
         normalized_df["date"] = data["date"]
 
+        # Train/validation/test split
         train_split = int(len(normalized_df) * 0.7)
         val_split = int(len(normalized_df) * 0.85)
         train_data = normalized_df.iloc[:train_split]
@@ -62,14 +79,12 @@ def preprocess_time_series_data(args):
 
         args.logger.info("Preprocessing complete. Train/Val/Test splits saved.")
 
-        create_sliding_window_data(train_data, args.lookback_window, args.forecast_horizon,
-                                   processed_dir / "train_sliding.csv")
+        # Generate sliding window datasets
+        create_sliding_window_data(train_data, args.lookback_window, args.forecast_horizon, train_file)
         args.logger.info("Creating sliding window datasets for train split complete.")
-        create_sliding_window_data(val_data, args.lookback_window, args.forecast_horizon,
-                                   processed_dir / "val_sliding.csv")
+        create_sliding_window_data(val_data, args.lookback_window, args.forecast_horizon, val_file)
         args.logger.info("Creating sliding window datasets for validation split complete.")
-        create_sliding_window_data(test_data, args.lookback_window, args.forecast_horizon,
-                                   processed_dir / "test_sliding.csv")
+        create_sliding_window_data(test_data, args.lookback_window, args.forecast_horizon, test_file)
         args.logger.info("Creating sliding window datasets for test split complete.")
     except Exception as e:
         args.logger.error(f"Error during preprocessing: {traceback.format_exc()}")
@@ -94,16 +109,9 @@ def create_sliding_window_data(data, lookback, forecast, output_path):
     x, y = [], []
 
     for i in range(len(features) - lookback - forecast + 1):
-        # Collect input features for the lookback period
         x.append(features[i: i + lookback])  # Shape: (lookback, num_features)
-
-        # Collect target values for the forecast horizon
         y.append(target[i + lookback: i + lookback + forecast])  # Shape: (forecast,)
 
-    # Verify shapes of X and y
-    print(f"First X shape: {np.array(x).shape}, First y shape: {np.array(y).shape}")
-
-    # Save sliding window dataset to a CSV file
     sliding_df = pd.DataFrame({
         "x": [xi.tolist() for xi in x],  # Convert arrays to lists for storage
         "y": [yi.tolist() for yi in y],
@@ -130,24 +138,14 @@ class TimeSeriesDataset(Dataset):
         self.y = np.array([np.array(eval(yi)) for yi in data["y"]])  # Shape: (num_samples, forecast)
 
         # Ensure that y has the correct dimensions
-        if len(self.y.shape) == 1:  # If y is (samples,), reshape to (samples, forecast_horizon)
+        if len(self.y.shape) == 1:
             self.y = self.y[:, np.newaxis]
 
-        # Validate shapes
-        if len(self.x.shape) != 3:
-            raise ValueError(f"X should have 3 dimensions: (samples, lookback, features). Found {self.x.shape}.")
-        if len(self.y.shape) != 2:
-            raise ValueError(f"Y should have 2 dimensions: (samples, forecast). Found {self.y.shape}.")
+        if len(self.x.shape) != 3 or len(self.y.shape) != 2:
+            raise ValueError(f"Invalid dimensions for X or Y. Shapes: X-{self.x.shape}, Y-{self.y.shape}")
 
-        # Verify lookback_window and forecast_horizon
-        if self.x.shape[1] != lookback_window:
-            raise ValueError(
-                f"Mismatch in lookback_window. Expected {lookback_window}, got {self.x.shape[1]}."
-            )
-        if self.y.shape[1] != forecast_horizon:
-            raise ValueError(
-                f"Mismatch in forecast_horizon. Expected {forecast_horizon}, got {self.y.shape[1]}."
-            )
+        if self.x.shape[1] != lookback_window or self.y.shape[1] != forecast_horizon:
+            raise ValueError("Mismatch in lookback_window or forecast_horizon.")
 
     def __len__(self):
         return len(self.x)
