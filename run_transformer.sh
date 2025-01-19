@@ -26,12 +26,12 @@ fi
 
 # Configurations with choices
 TASKS=("time_series")
-TEST_CASES=("evaluate_transformer")
+TEST_CASES=("evaluate_transformer") #"preprocess_data" "train_transformer" "evaluate_transformer")
 DATASETS=("room_data")
 MODELS=("transformer")
 BATCH_SIZES=("16")
-LOOKBACK_WINDOWS=("60")
-FORECAST_HORIZONS=("7")
+LOOKBACK_WINDOWS=("60") # "90" "120")
+FORECAST_HORIZONS=("7") # "14" "21" "30" "60")
 LEARNING_RATES=("0.001")
 WEIGHT_DECAYS=("0.0001")
 OPTIMIZERS=("adam")
